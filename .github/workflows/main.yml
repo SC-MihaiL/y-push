@@ -1,0 +1,15 @@
+name: Push Xray to Yandex
+on: [workflow_dispatch] # Запуск кнопкой вручную
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Yandex Container Registry
+        run: echo "y0__wgBEKOq5vEFGIemQSDMyIqqFzCKuffmB5VQ4JbaTHuh5h6ZfetEAiBma2AI" | docker login --username oauth --password-stdin cr.yandex
+
+      - name: Pull, Tag and Push
+        run: |
+          docker pull ghcr.io/xtls/xray-core:latest
+          docker tag ghcr.io/xtls/xray-core:latest cr.yandex/crpbo2uf9mr2ue8qp0qe/xray:latest
+          docker push cr.yandex/crpbo2uf9mr2ue8qp0qe/xray:latest
