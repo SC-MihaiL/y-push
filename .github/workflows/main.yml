@@ -1,15 +1,49 @@
-name: Push Xray to Yandex
-on: [workflow_dispatch] # Запуск кнопкой вручную
+name: Push Xray to Yandex (Teddysun)
+on: [workflow_dispatch]
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create Xray Config
+        run: |
+          cat <<EOF > config.json
+          {
+            "log": { "loglevel": "error" },
+            "inbounds": [{
+              "port": 8080,
+              "protocol": "vless",
+              "settings": {
+                "clients": [{ "id": "523d8ed0-17c2-47ba-95d3-b6408fe61f83" }],
+                "decryption": "none"
+              },
+              "streamSettings": {
+                "network": "ws",
+                "wsSettings": { "path": "/arknsyfm" }
+              }
+            }],
+            "outbounds": [{ "protocol": "freedom" }]
+          }
+          EOF
+
+      - name: Create Dockerfile
+        run: |
+          cat <<EOF > Dockerfile
+          FROM teddysun/xray:latest
+          RUN mkdir -p /etc/xray
+          COPY config.json /etc/xray/config.json
+          # Явно указываем путь к конфигу для бинарника в образе teddysun
+          ENTRYPOINT ["/usr/bin/xray", "-config", "/etc/xray/config.json"]
+          EOF
+
       - name: Login to Yandex Container Registry
         run: echo "y0__wgBEKOq5vEFGIemQSDMyIqqFzCKuffmB5VQ4JbaTHuh5h6ZfetEAiBma2AI" | docker login --username oauth --password-stdin cr.yandex
 
-      - name: Pull, Tag and Push
+      - name: Build and Push
         run: |
-          docker pull ghcr.io/xtls/xray-core:latest
-          docker tag ghcr.io/xtls/xray-core:latest cr.yandex/crpbo2uf9mr2ue8qp0qe/xray:latest
+          # Используем твой ID реестра: crpbo2uf9mr2ue8qp0qe
+          docker build -t cr.yandex/crpbo2uf9mr2ue8qp0qe/xray:latest .
           docker push cr.yandex/crpbo2uf9mr2ue8qp0qe/xray:latest
