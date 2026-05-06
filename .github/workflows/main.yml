@@ -1,4 +1,4 @@
-name: Push Xray to Yandex (Teddysun)
+name: Push Xray to Yandex (Teddysun gRPC)
 on: [workflow_dispatch]
 
 jobs:
@@ -17,12 +17,16 @@ jobs:
               "port": 8080,
               "protocol": "vless",
               "settings": {
-                "clients": [{ "id": "523d8ed0-17c2-47ba-95d3-b6408fe61f83" }],
-                "decryption": "none"
+                "clients": [{ 
+                  "id": "523d8ed0-17c2-47ba-95d3-b6408fe61f83",
+                  "decryption": "none"
+                }]
               },
               "streamSettings": {
-                "network": "ws",
-                "wsSettings": { "path": "/arknsyfm" }
+                "network": "grpc",
+                "grpcSettings": {
+                  "serviceName": "arknsyfm"
+                }
               }
             }],
             "outbounds": [{ "protocol": "freedom" }]
@@ -35,7 +39,7 @@ jobs:
           FROM teddysun/xray:latest
           RUN mkdir -p /etc/xray
           COPY config.json /etc/xray/config.json
-          # Явно указываем путь к конфигу для бинарника в образе teddysun
+          # Явно указываем путь к конфигу
           ENTRYPOINT ["/usr/bin/xray", "-config", "/etc/xray/config.json"]
           EOF
 
@@ -44,6 +48,6 @@ jobs:
 
       - name: Build and Push
         run: |
-          # Используем твой ID реестра: crpbo2uf9mr2ue8qp0qe
+          # Твой Registry ID: crpbo2uf9mr2ue8qp0qe
           docker build -t cr.yandex/crpbo2uf9mr2ue8qp0qe/xray:latest .
           docker push cr.yandex/crpbo2uf9mr2ue8qp0qe/xray:latest
